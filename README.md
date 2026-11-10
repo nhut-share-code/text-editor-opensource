@@ -1,4 +1,4 @@
-# 📝 Rich Text Editor — Vanilla JS (Enterprise Edition v2.0)
+# 📝Text Editor
 
 ![Vanilla JS](https://img.shields.io/badge/Vanilla_JS-100%25-f7df1e?style=flat-square&logo=javascript&logoColor=black)
 ![Zero Dependencies](https://img.shields.io/badge/Dependencies-None-22c55e?style=flat-square)
