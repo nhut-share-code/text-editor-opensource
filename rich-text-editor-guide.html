@@ -1,0 +1,1471 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hướng Dẫn Tích Hợp & Sử Dụng Rich Text Editor (Vanilla JS)</title>
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- CSS Trình soạn thảo của bạn -->
+    <link rel="stylesheet" href="rich-text-editor.css" />
+
+    <style>
+      :root {
+        --brand-primary: #15803d;
+        --brand-primary-dark: #166534;
+        --brand-primary-light: #f0fdf4;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --bg-page: #f8fafc;
+        --bg-card: #ffffff;
+        --border-color: #e2e8f0;
+        --code-bg: #0f172a;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          "Plus Jakarta Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background-color: var(--bg-page);
+        color: var(--text-main);
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Top Header Navbar */
+      .header-nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 14px 24px;
+      }
+      .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .logo-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 1.15rem;
+      }
+      .logo-badge {
+        background: var(--brand-primary);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .header-links {
+        display: flex;
+        gap: 18px;
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+      .header-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 0.15s;
+      }
+      .header-links a:hover {
+        color: var(--brand-primary);
+      }
+
+      /* Hero Banner */
+      .hero {
+        background: linear-gradient(135deg, #052e16 0%, #14532d 100%);
+        color: #ffffff;
+        padding: 60px 24px 70px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle at center,
+          rgba(34, 197, 94, 0.15) 0%,
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .hero-inner {
+        max-width: 860px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+      .hero-tags {
+        display: inline-flex;
+        gap: 8px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .hero-tag {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+      }
+      .hero h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1.25;
+        margin-bottom: 16px;
+        letter-spacing: -0.5px;
+      }
+      .hero p {
+        font-size: 1.125rem;
+        color: #dcfce7;
+        max-width: 720px;
+        margin: 0 auto 28px;
+      }
+      .hero-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .btn-hero {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+      .btn-hero-primary {
+        background: #22c55e;
+        color: #052e16;
+        box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
+      }
+      .btn-hero-primary:hover {
+        background: #4ade80;
+        transform: translateY(-1px);
+      }
+      .btn-hero-secondary {
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .btn-hero-secondary:hover {
+        background: rgba(255, 255, 255, 0.22);
+      }
+
+      /* Main Container Layout */
+      .layout-container {
+        max-width: 1200px;
+        margin: 40px auto 80px;
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 36px;
+        align-items: start;
+      }
+
+      /* Sidebar Navigation */
+      .sidebar {
+        position: sticky;
+        top: 80px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+      }
+      .sidebar-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.8px;
+        margin-bottom: 12px;
+        padding-left: 8px;
+      }
+      .sidebar-menu {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .sidebar-link {
+        display: block;
+        padding: 8px 12px;
+        border-radius: 6px;
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.15s;
+      }
+      .sidebar-link:hover {
+        background: var(--brand-primary-light);
+        color: var(--brand-primary);
+      }
+
+      /* Content Sections */
+      .content-area {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        min-width: 0;
+      }
+      .doc-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 32px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        scroll-margin-top: 90px;
+      }
+      .doc-section-header {
+        margin-bottom: 22px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 14px;
+      }
+      .doc-section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .doc-section-badge {
+        font-size: 0.75rem;
+        background: #dbeafe;
+        color: #1e40af;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+      .doc-section-desc {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-top: 6px;
+      }
+
+      /* Feature Cards Grid */
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+      }
+      .feature-item {
+        background: #f8fafc;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .feature-icon {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+        display: block;
+      }
+      .feature-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 4px;
+      }
+      .feature-desc {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        line-height: 1.45;
+      }
+
+      /* Code Block Styling */
+      .code-wrapper {
+        position: relative;
+        margin: 16px 0 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--code-bg);
+        border: 1px solid #1e293b;
+      }
+      .code-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 16px;
+        background: #1e293b;
+        color: #94a3b8;
+        font-size: 0.75rem;
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .code-copy-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: #e2e8f0;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .code-copy-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+      pre {
+        padding: 16px;
+        overflow-x: auto;
+        color: #f1f5f9;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88rem;
+        line-height: 1.6;
+      }
+      .code-comment {
+        color: #64748b;
+        font-style: italic;
+      }
+      .code-tag {
+        color: #38bdf8;
+      }
+      .code-attr {
+        color: #facc15;
+      }
+      .code-string {
+        color: #4ade80;
+      }
+      .code-keyword {
+        color: #f472b6;
+      }
+      .code-func {
+        color: #60a5fa;
+      }
+
+      /* Step Guide */
+      .step-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin: 16px 0;
+      }
+      .step-item {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .step-num {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--brand-primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+      .step-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .step-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+
+      /* Alert Callout Box */
+      .callout-box {
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin: 18px 0;
+        font-size: 0.92rem;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .callout-info {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        color: #1e3a8a;
+      }
+      .callout-success {
+        background: #f0fdf4;
+        border-left: 4px solid #22c55e;
+        color: #14532d;
+      }
+      .callout-warning {
+        background: #fffbeb;
+        border-left: 4px solid #f59e0b;
+        color: #78350f;
+      }
+
+      /* API Table */
+      .api-table-wrapper {
+        overflow-x: auto;
+        margin: 18px 0;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+      }
+      .api-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        text-align: left;
+      }
+      .api-table th {
+        background: #f8fafc;
+        padding: 12px 16px;
+        font-weight: 700;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border-color);
+      }
+      .api-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+        vertical-align: top;
+      }
+      .api-table tr:last-child td {
+        border-bottom: none;
+      }
+      .api-method {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.85rem;
+        color: #0284c7;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .api-tag {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #e2e8f0;
+        color: #475569;
+      }
+
+      /* Sandbox Playground */
+      .demo-sandbox {
+        background: #ffffff;
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        padding: 24px;
+        margin: 20px 0;
+      }
+      .demo-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid var(--border-color);
+      }
+      .demo-btn {
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .demo-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+      .demo-btn-primary {
+        background: var(--brand-primary);
+        color: #ffffff;
+        border-color: var(--brand-primary);
+      }
+      .demo-btn-primary:hover {
+        background: var(--brand-primary-dark);
+        color: #ffffff;
+      }
+      .demo-output-box {
+        margin-top: 14px;
+        background: #0f172a;
+        color: #4ade80;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.8rem;
+        padding: 12px 16px;
+        border-radius: 8px;
+        max-height: 180px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+        display: none;
+      }
+
+      /* Footer */
+      .footer {
+        border-top: 1px solid var(--border-color);
+        background: #ffffff;
+        padding: 30px 24px;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      /* Responsive Mobile */
+      @media (max-width: 900px) {
+        .layout-container {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          position: static;
+        }
+        .hero h1 {
+          font-size: 1.85rem;
+        }
+        .doc-section {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header Navigation -->
+    <header class="header-nav">
+      <div class="header-content">
+        <a href="#" class="logo-wrap">
+          <span style="font-size: 1.4rem">📝</span>
+          <span>Rich Text Editor</span>
+          <span class="logo-badge">Vanilla JS</span>
+        </a>
+        <nav class="header-links">
+          <a href="#quick-start">Cài đặt nhanh</a>
+          <a href="#laravel-guide">Dự án Laravel</a>
+          <a href="#demo-section">Dùng thử Live</a>
+          <a href="#api-reference">API &amp; Hàm</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero Banner -->
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-tags">
+          <span class="hero-tag">✨ 100% Vanilla JS</span>
+          <span class="hero-tag">🚫 Không phụ thuộc thư viện</span>
+          <span class="hero-tag">⚡ Two-way Sync Siêu Tốc</span>
+          <span class="hero-tag">📱 Chuẩn Mobile Responsive</span>
+        </div>
+        <h1>Tài Liệu Hướng Dẫn Tích Hợp<br />Rich Text Editor Độc Quyền</h1>
+        <p>
+          Trình soạn thảo văn bản trực quan chuẩn doanh nghiệp dành cho website
+          của bạn. Hoạt động mượt mà với form submit, Bootstrap Modal và mọi
+          framework PHP/Laravel.
+        </p>
+        <div class="hero-actions">
+          <a href="#quick-start" class="btn-hero btn-hero-primary"
+            >🚀 Bắt Đầu Tích Hợp (30 Giây)</a
+          >
+          <a href="#demo-section" class="btn-hero btn-hero-secondary"
+            >🕹️ Dùng Thử Trực Tiếp</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Container -->
+    <div class="layout-container">
+      <!-- Sidebar Navigation -->
+      <aside class="sidebar">
+        <div class="sidebar-title">Mục lục tài liệu</div>
+        <ul class="sidebar-menu">
+          <li>
+            <a href="#overview" class="sidebar-link"
+              >1. Điểm nổi bật &amp; Tính năng</a
+            >
+          </li>
+          <li>
+            <a href="#quick-start" class="sidebar-link"
+              >2. Cài đặt nhanh trong 3 bước</a
+            >
+          </li>
+          <li>
+            <a href="#demo-section" class="sidebar-link"
+              >3. Khung soạn thảo mẫu (Demo)</a
+            >
+          </li>
+          <li>
+            <a href="#laravel-guide" class="sidebar-link"
+              >4. Tích hợp chuẩn vào Laravel</a
+            >
+          </li>
+          <li>
+            <a href="#options-attributes" class="sidebar-link"
+              >5. Thuộc tính &amp; Tùy chỉnh</a
+            >
+          </li>
+          <li>
+            <a href="#api-reference" class="sidebar-link"
+              >6. Bảng hàm JavaScript (API)</a
+            >
+          </li>
+          <li>
+            <a href="#two-way-sync" class="sidebar-link"
+              >7. Cơ chế Two-way Sync tự động</a
+            >
+          </li>
+          <li>
+            <a href="#modal-integration" class="sidebar-link"
+              >8. Dùng trong Bootstrap Modal</a
+            >
+          </li>
+          <li>
+            <a href="#faq-troubleshooting" class="sidebar-link"
+              >9. Xử lý sự cố &amp; FAQ</a
+            >
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Content Area -->
+      <main class="content-area">
+        <!-- Section 1: Overview -->
+        <section id="overview" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">
+              <span>1. Điểm Nổi Bật Của Editor</span>
+              <span class="doc-section-badge">Enterprise v2.0</span>
+            </h2>
+            <p class="doc-section-desc">
+              Bộ công cụ soạn thảo trực quan Vanilla JS do chính bạn làm chủ mã
+              nguồn 100%, không bị phụ thuộc vào các gói bên ngoài.
+            </p>
+          </div>
+
+          <div class="features-grid">
+            <div class="feature-item">
+              <span class="feature-icon">⚡</span>
+              <div class="feature-title">Siêu nhẹ &amp; Độc lập</div>
+              <div class="feature-desc">
+                Chỉ gồm 1 file JS và 1 file CSS thuần, không cần jQuery, npm hay
+                bundle phức tạp.
+              </div>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🔄</span>
+              <div class="feature-title">Đồng bộ 2 chiều (Two-way Sync)</div>
+              <div class="feature-desc">
+                Tự động đẩy dữ liệu sang thẻ <code>&lt;textarea&gt;</code>. Khi
+                JS đổi <code>textarea.value</code>, editor tự cập nhật ngay.
+              </div>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🖼️</span>
+              <div class="feature-title">Quản lý Đa phương tiện</div>
+              <div class="feature-desc">
+                Tải ảnh từ máy tính, kéo thả hoặc dán ảnh clipboard, nhúng video
+                YouTube tỉ lệ 16:9, bảng nổi chỉnh kích thước ảnh.
+              </div>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🎙️</span>
+              <div class="feature-title">Soạn thảo Giọng nói Tiếng Việt</div>
+              <div class="feature-desc">
+                Tích hợp Web Speech API cho phép nói trực tiếp để chuyển thành
+                văn bản tức thì.
+              </div>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🌙</span>
+              <div class="feature-title">Dark Mode &amp; Toàn màn hình</div>
+              <div class="feature-desc">
+                Hỗ trợ chế độ nền tối chống mỏi mắt và phóng to toàn màn hình
+                tập trung viết bài.
+              </div>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">📄</span>
+              <div class="feature-title">Xuất Word (.doc) &amp; HTML</div>
+              <div class="feature-desc">
+                Xuất bài viết trực tiếp ra file tài liệu Word (.doc) hoặc HTML
+                có sẵn định dạng.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 2: Quick Start -->
+        <section id="quick-start" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">2. Cài Đặt Nhanh Trong 3 Bước</h2>
+            <p class="doc-section-desc">
+              Chỉ mất chưa đầy 30 giây để biến bất kỳ thẻ
+              <code>&lt;textarea&gt;</code> nào thành trình soạn thảo chuyên
+              nghiệp.
+            </p>
+          </div>
+
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-body">
+                <div class="step-title">
+                  Nhúng file CSS vào thẻ <code>&lt;head&gt;</code>
+                </div>
+                <p class="doc-section-desc">
+                  Đảm bảo bạn tải file CSS trước các nội dung hiển thị.
+                </p>
+                <div class="code-wrapper">
+                  <div class="code-header">
+                    <span>HTML / Blade</span>
+                    <button class="code-copy-btn" onclick="copyCode(this)">
+                      Sao chép
+                    </button>
+                  </div>
+                  <pre><code><span class="code-comment">&lt;!-- CSS Rich Text Editor --&gt;</span>
+<span class="code-tag">&lt;link</span> <span class="code-attr">rel</span>=<span class="code-string">"stylesheet"</span> <span class="code-attr">href</span>=<span class="code-string">"css/rich-text-editor.css"</span><span class="code-tag">&gt;</span></code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-body">
+                <div class="step-title">
+                  Nhúng file JS trước thẻ đóng <code>&lt;/body&gt;</code>
+                </div>
+                <p class="doc-section-desc">
+                  Script chứa toàn bộ logic xử lý thao tác văn bản và tự động
+                  quét các thẻ textarea.
+                </p>
+                <div class="code-wrapper">
+                  <div class="code-header">
+                    <span>HTML / Blade</span>
+                    <button class="code-copy-btn" onclick="copyCode(this)">
+                      Sao chép
+                    </button>
+                  </div>
+                  <pre><code><span class="code-comment">&lt;!-- JS Rich Text Editor --&gt;</span>
+<span class="code-tag">&lt;script</span> <span class="code-attr">src</span>=<span class="code-string">"js/rich-text-editor.js"</span><span class="code-tag">&gt;&lt;/script&gt;</span></code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-body">
+                <div class="step-title">
+                  Gắn class <code>rich-editor</code> vào thẻ
+                  <code>&lt;textarea&gt;</code>
+                </div>
+                <p class="doc-section-desc">
+                  Trình soạn thảo sẽ tự động nhận diện và khởi tạo giao diện
+                  thay thế.
+                </p>
+                <div class="code-wrapper">
+                  <div class="code-header">
+                    <span>HTML</span>
+                    <button class="code-copy-btn" onclick="copyCode(this)">
+                      Sao chép
+                    </button>
+                  </div>
+                  <pre><code><span class="code-tag">&lt;textarea</span> <span class="code-attr">name</span>=<span class="code-string">"noi_dung"</span> <span class="code-attr">class</span>=<span class="code-string">"rich-editor"</span> <span class="code-attr">placeholder</span>=<span class="code-string">"Nhập nội dung bài viết..."</span><span class="code-tag">&gt;&lt;/textarea&gt;</span></code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout-box callout-success">
+            <span>💡</span>
+            <div>
+              <strong>Xong ngay!</strong> Trình soạn thảo có cơ chế tự khởi tạo
+              (Auto-init) tự động quét tất cả thẻ
+              <code>&lt;textarea class="rich-editor"&gt;</code> khi DOM sẵn sàng
+              mà bạn không cần phải viết thêm một dòng JavaScript nào.
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 3: Live Demo -->
+        <section id="demo-section" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">
+              3. Khung Soạn Thảo Mẫu (Live Demo)
+            </h2>
+            <p class="doc-section-desc">
+              Bạn có thể gõ thử, định dạng văn bản, chèn ảnh, bảng hoặc xem
+              trước ngay dưới đây.
+            </p>
+          </div>
+
+          <div class="demo-sandbox">
+            <!-- Textarea thử nghiệm -->
+            <textarea
+              id="myDemoEditor"
+              class="rich-editor"
+              data-height="250px"
+              placeholder="Bạn có thể gõ thử nội dung tại đây..."
+            >
+<h2>Chào mừng bạn đến với Rich Text Editor!</h2>
+<p>Đây là trình soạn thảo văn bản được phát triển hoàn toàn bằng <strong>Vanilla HTML, CSS và JavaScript</strong> mà không phụ thuộc vào bất kỳ thư viện bên thứ ba nào.</p>
+<div class="rte-callout rte-callout-info">
+    <strong>💡 Tính năng nổi bật:</strong>
+    <ul>
+        <li>Hỗ trợ định dạng văn bản linh hoạt (Đậm, nghiêng, gạch chân, tiêu đề).</li>
+        <li>Tích hợp các khối nội dung đặc biệt như Callout, Quote, Table.</li>
+        <li>Tối ưu hóa dung lượng nhẹ, khởi tạo nhanh và dễ dàng tùy biến giao diện.</li>
+    </ul>
+</div>
+<p>Hãy thử gõ nội dung mới, định dạng lại văn bản hoặc bấm vào nút <strong>Xem trước</strong> trên thanh công cụ!</p>
+</textarea
+            >
+
+            <div class="demo-controls">
+              <button
+                type="button"
+                class="demo-btn demo-btn-primary"
+                onclick="demoGetHTML()"
+              >
+                Lấy mã HTML (getContent)
+              </button>
+              <button type="button" class="demo-btn" onclick="demoSetSample()">
+                Nạp nội dung mẫu (setContent)
+              </button>
+              <button
+                type="button"
+                class="demo-btn"
+                onclick="demoDirectValue()"
+              >
+                Đổi trực tiếp qua textarea.value
+              </button>
+              <button type="button" class="demo-btn" onclick="demoClear()">
+                Xóa sạch (Clear)
+              </button>
+            </div>
+
+            <div id="demoOutput" class="demo-output-box"></div>
+          </div>
+        </section>
+
+        <!-- Section 4: Laravel Integration -->
+        <section id="laravel-guide" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">
+              4. Tích Hợp Chuẩn Vào Dự Án Laravel
+            </h2>
+            <p class="doc-section-desc">
+              Hướng dẫn đưa vào Layout chính và sử dụng trong các file Blade
+              view.
+            </p>
+          </div>
+
+          <h3 style="font-size: 1.1rem; margin-bottom: 8px">
+            A. Đưa vào Layout chính (Ví dụ:
+            <code>resources/views/layouts/admin.blade.php</code>)
+          </h3>
+          <div class="code-wrapper">
+            <div class="code-header">
+              <span>resources/views/layouts/admin.blade.php</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">
+                Sao chép
+              </button>
+            </div>
+            <pre><code><span class="code-tag">&lt;!DOCTYPE</span> <span class="code-attr">html</span><span class="code-tag">&gt;</span>
+<span class="code-tag">&lt;html</span> <span class="code-attr">lang</span>=<span class="code-string">"vi"</span><span class="code-tag">&gt;</span>
+<span class="code-tag">&lt;head&gt;</span>
+    <span class="code-tag">&lt;meta</span> <span class="code-attr">charset</span>=<span class="code-string">"UTF-8"</span><span class="code-tag">&gt;</span>
+    <span class="code-tag">&lt;title&gt;</span>@yield('title', 'Admin Dashboard')<span class="code-tag">&lt;/title&gt;</span>
+
+    <span class="code-comment">&lt;!-- 1. CSS Rich Text Editor --&gt;</span>
+    <span class="code-tag">&lt;link</span> <span class="code-attr">rel</span>=<span class="code-string">"stylesheet"</span> <span class="code-attr">href</span>=<span class="code-string">"{{ asset('css/rich-text-editor.css') }}"</span><span class="code-tag">&gt;</span>
+<span class="code-tag">&lt;/head&gt;</span>
+<span class="code-tag">&lt;body&gt;</span>
+    <span class="code-tag">&lt;main&gt;</span>
+        @yield('content')
+    <span class="code-tag">&lt;/main&gt;</span>
+
+    <span class="code-comment">&lt;!-- 2. JS Rich Text Editor --&gt;</span>
+    <span class="code-tag">&lt;script</span> <span class="code-attr">src</span>=<span class="code-string">"{{ asset('js/rich-text-editor.js') }}"</span><span class="code-tag">&gt;&lt;/script&gt;</span>
+    @stack('scripts')
+<span class="code-tag">&lt;/body&gt;</span>
+<span class="code-tag">&lt;/html&gt;</span></code></pre>
+          </div>
+
+          <h3 style="font-size: 1.1rem; margin-top: 24px; margin-bottom: 8px">
+            B. Sử dụng trong Form Tạo Mới / Cập Nhật (Ví dụ: Bài Viết / Tài Liệu)
+          </h3>
+          <div class="code-wrapper">
+            <div class="code-header">
+              <span>form.blade.php</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">
+                Sao chép
+              </button>
+            </div>
+            <pre><code><span class="code-tag">&lt;form</span> <span class="code-attr">action</span>=<span class="code-string">"{{ route('admin.posts.store') }}"</span> <span class="code-attr">method</span>=<span class="code-string">"POST"</span><span class="code-tag">&gt;</span>
+    @csrf
+    
+    <span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-string">"mb-3"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;label</span> <span class="code-attr">class</span>=<span class="code-string">"form-label fw-bold"</span><span class="code-tag">&gt;</span>Nội dung chi tiết bài viết:<span class="code-tag">&lt;/label&gt;</span>
+        <span class="code-tag">&lt;textarea</span> 
+            <span class="code-attr">name</span>=<span class="code-string">"noi_dung"</span> 
+            <span class="code-attr">class</span>=<span class="code-string">"form-control rich-editor"</span> 
+            <span class="code-attr">data-height</span>=<span class="code-string">"280px"</span> 
+            <span class="code-attr">placeholder</span>=<span class="code-string">"Soạn thảo văn bản, định dạng tiêu đề, chèn ảnh, bảng biểu..."</span><span class="code-tag">&gt;</span>{{ old('noi_dung', $post->noi_dung ?? '') }}<span class="code-tag">&lt;/textarea&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+
+    <span class="code-tag">&lt;button</span> <span class="code-attr">type</span>=<span class="code-string">"submit"</span> <span class="code-attr">class</span>=<span class="code-string">"btn btn-success"</span><span class="code-tag">&gt;</span>Lưu Bài Viết<span class="code-tag">&lt;/button&gt;</span>
+<span class="code-tag">&lt;/form&gt;</span></code></pre>
+          </div>
+
+          <h3 style="font-size: 1.1rem; margin-top: 24px; margin-bottom: 8px">
+            C. Hiển thị nội dung ra trang người dùng (Frontend)
+          </h3>
+          <p class="doc-section-desc">
+            Vì nội dung được lưu dưới dạng HTML (chứa thẻ
+            <code>&lt;p&gt;</code>, <code>&lt;img&gt;</code>,
+            <code>&lt;table&gt;</code>), bạn hãy dùng cú pháp
+            <code>{!! ... !!}</code> của Blade:
+          </p>
+          <div class="code-wrapper">
+            <div class="code-header">
+              <span>show.blade.php</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">
+                Sao chép
+              </button>
+            </div>
+            <pre><code><span class="code-comment">&lt;!-- Nhớ kèm css của editor nếu muốn giữ nguyên style callout, bảng biểu --&gt;</span>
+<span class="code-tag">&lt;div</span> <span class="code-attr">class</span>=<span class="code-string">"post-detail-content rte-editor-area"</span> <span class="code-attr">style</span>=<span class="code-string">"border: none; padding: 0;"</span><span class="code-tag">&gt;</span>
+    {!! $post->noi_dung !!}
+<span class="code-tag">&lt;/div&gt;</span></code></pre>
+          </div>
+        </section>
+
+        <!-- Section 5: Options & Attributes -->
+        <section id="options-attributes" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">
+              5. Các Thuộc Tính Cấu Hình (HTML Data Attributes)
+            </h2>
+            <p class="doc-section-desc">
+              Dễ dàng tùy chỉnh cách thức hiển thị của từng khung soạn thảo qua
+              các thuộc tính HTML.
+            </p>
+          </div>
+
+          <div class="api-table-wrapper">
+            <table class="api-table">
+              <thead>
+                <tr>
+                  <th>Thuộc tính</th>
+                  <th>Kiểu dữ liệu</th>
+                  <th>Mặc định</th>
+                  <th>Mô tả chi tiết</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>class="rich-editor"</code></td>
+                  <td><span class="api-tag">Class</span></td>
+                  <td>-</td>
+                  <td>Class kích hoạt tự động quét và gắn trình soạn thảo.</td>
+                </tr>
+                <tr>
+                  <td><code>data-rich-editor</code></td>
+                  <td><span class="api-tag">Attribute</span></td>
+                  <td>-</td>
+                  <td>Thuộc tính kích hoạt thay thế cho class.</td>
+                </tr>
+                <tr>
+                  <td><code>data-height="300px"</code></td>
+                  <td><span class="api-tag">String</span></td>
+                  <td><code>260px</code></td>
+                  <td>
+                    Chiều cao tối thiểu của vùng soạn thảo văn bản (VD:
+                    <code>200px</code>, <code>350px</code>).
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>placeholder="..."</code></td>
+                  <td><span class="api-tag">String</span></td>
+                  <td><code>Nhập nội dung...</code></td>
+                  <td>
+                    Văn bản hướng dẫn hiển thị mờ khi khung chưa có dữ liệu.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>name="..."</code></td>
+                  <td><span class="api-tag">String</span></td>
+                  <td>-</td>
+                  <td>Tên trường khi gửi qua HTTP POST Form thông thường.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Section 6: API Reference -->
+        <section id="api-reference" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">
+              6. Bảng Hàm JavaScript (Programmatic API)
+            </h2>
+            <p class="doc-section-desc">
+              Khi bạn cần điều khiển trình soạn thảo bằng JavaScript (Ajax,
+              Fetch, Modal, SPA).
+            </p>
+          </div>
+
+          <div class="code-wrapper">
+            <div class="code-header">
+              <span>JavaScript</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">
+                Sao chép
+              </button>
+            </div>
+            <pre><code><span class="code-comment">// Cách 1: Khởi tạo thủ công cho 1 textarea</span>
+<span class="code-keyword">const</span> editor = <span class="code-keyword">new</span> <span class="code-func">RichTextEditor</span>(<span class="code-string">'#myTextarea'</span>, {
+    height: <span class="code-string">'320px'</span>,
+    placeholder: <span class="code-string">'Nhập bài viết của bạn...'</span>
+});
+
+<span class="code-comment">// Cách 2: Lấy instance đã được khởi tạo trước đó</span>
+<span class="code-keyword">const</span> editor = <span class="code-func">RichTextEditor.getInstance</span>(<span class="code-string">'#myTextarea'</span>);</code></pre>
+          </div>
+
+          <div class="api-table-wrapper">
+            <table class="api-table">
+              <thead>
+                <tr>
+                  <th>Tên phương thức (Method)</th>
+                  <th>Tham số</th>
+                  <th>Chức năng</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="api-method">getContent()</td>
+                  <td>-</td>
+                  <td>Trả về chuỗi mã HTML hiện tại trong khung soạn thảo.</td>
+                </tr>
+                <tr>
+                  <td class="api-method">setContent(html)</td>
+                  <td><code>html: string</code></td>
+                  <td>
+                    Gán nội dung HTML mới vào editor và tự động đồng bộ sang
+                    textarea.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="api-method">insertHTML(html)</td>
+                  <td><code>html: string</code></td>
+                  <td>
+                    Chèn một đoạn mã HTML hoặc văn bản vào ngay tại vị trí con
+                    trỏ chuột.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="api-method">syncToTextarea()</td>
+                  <td>-</td>
+                  <td>
+                    Ép đồng bộ giá trị hiện tại sang thẻ
+                    <code>&lt;textarea&gt;</code> gốc.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="api-method">focus()</td>
+                  <td>-</td>
+                  <td>Đặt con trỏ và kích hoạt vùng soạn thảo.</td>
+                </tr>
+                <tr>
+                  <td class="api-method">toggleDarkMode()</td>
+                  <td>-</td>
+                  <td>Bật hoặc tắt giao diện chế độ tối (Dark Mode).</td>
+                </tr>
+                <tr>
+                  <td class="api-method">toggleFullscreen()</td>
+                  <td>-</td>
+                  <td>Bật hoặc thoát chế độ toàn màn hình.</td>
+                </tr>
+                <tr>
+                  <td class="api-method">toggleSource()</td>
+                  <td>-</td>
+                  <td>
+                    Chuyển đổi giữa giao diện trực quan và xem mã nguồn HTML
+                    thô.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="api-method">openPreview()</td>
+                  <td>-</td>
+                  <td>
+                    Mở hộp thoại (Modal) xem trước bài viết dạng trang in chuẩn.
+                  </td>
+                </tr>
+                <tr>
+                  <td class="api-method">exportWordDocument()</td>
+                  <td>-</td>
+                  <td>
+                    Tự động tải về file tài liệu định dạng Microsoft Word
+                    (.doc).
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Section 7: Two-way Sync -->
+        <section id="two-way-sync" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">
+              <span>7. Cơ Chế Two-Way Sync Siêu Việt</span>
+              <span class="doc-section-badge">Đặc biệt</span>
+            </h2>
+            <p class="doc-section-desc">
+              Không cần phải nhớ gọi hàm đồng bộ thủ công - Mọi thứ diễn ra tự
+              động 100%.
+            </p>
+          </div>
+
+          <p>
+            Nhiều trình soạn thảo lớn (như TinyMCE hay CKEditor) gặp vấn đề rất
+            khó chịu: khi bạn gán giá trị bằng JavaScript
+            <code>textarea.value = 'nội dung mới'</code> (ví dụ khi load dữ liệu
+            sửa qua Ajax), khung soạn thảo trực quan sẽ
+            <strong>không đổi</strong> trừ khi bạn gọi hàm chuyên biệt của thư
+            viện đó.
+          </p>
+
+          <p style="margin-top: 10px">
+            Rich Text Editor này đã được tích hợp sẵn kỹ thuật
+            <strong>Property Interceptor Hook</strong> (can thiệp trực tiếp vào
+            <code>HTMLTextAreaElement.prototype</code>):
+          </p>
+
+          <div class="code-wrapper">
+            <div class="code-header">
+              <span>JavaScript</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">
+                Sao chép
+              </button>
+            </div>
+            <pre><code><span class="code-comment">// Khi tải dữ liệu bài viết từ Ajax về để hiển thị vào form chỉnh sửa:</span>
+fetch(<span class="code-string">'/api/posts/1'</span>)
+    .then(res =&gt; res.json())
+    .then(data =&gt; {
+        <span class="code-comment">// CHỈ CẦN GÁN BÌNH THƯỜNG NHƯ VỚI TEXTAREA THÔNG THƯỜNG!</span>
+        document.getElementById(<span class="code-string">'edit_post_noi_dung'</span>).value = data.noi_dung;
+        
+        <span class="code-comment">// &gt;&gt;&gt; Khung soạn thảo trực quan sẽ TỰ ĐỘNG nhận và hiển thị ngay lập tức!</span>
+    });</code></pre>
+          </div>
+
+          <div class="callout-box callout-info">
+            <span>📌</span>
+            <div>
+              Khi người dùng gõ phím bên trong khung soạn thảo, editor cũng tự
+              động bắn ra sự kiện <code>input</code> và <code>change</code> trên
+              textarea, giúp các script Validation form luôn nhận được giá trị
+              mới nhất.
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 8: Bootstrap Modal -->
+        <section id="modal-integration" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">
+              8. Hoạt Động Trong Bootstrap Modal
+            </h2>
+            <p class="doc-section-desc">
+              Xử lý form tạo mới hoặc chỉnh sửa nằm trong cửa sổ popup Bootstrap
+              Modal.
+            </p>
+          </div>
+
+          <p>
+            Khi đặt trong Bootstrap Modal, editor đã được tối ưu sẵn thuộc tính
+            CSS <code>min-width: 0</code> và
+            <code>box-sizing: border-box</code> để không bao giờ làm vỡ kích
+            thước popup modal.
+          </p>
+
+          <div class="code-wrapper">
+            <div class="code-header">
+              <span>Blade &amp; JavaScript</span>
+              <button class="code-copy-btn" onclick="copyCode(this)">
+                Sao chép
+              </button>
+            </div>
+            <pre><code><span class="code-comment">&lt;!-- Khi mở Modal để sửa bài viết và gán dữ liệu qua JS --&gt;</span>
+<span class="code-tag">&lt;script&gt;</span>
+<span class="code-keyword">function</span> <span class="code-func">openEditPostModal</span>(post) {
+    document.getElementById(<span class="code-string">'edit_post_id'</span>).value = post.id;
+    document.getElementById(<span class="code-string">'edit_post_tieu_de'</span>).value = post.tieu_de;
+    
+    <span class="code-comment">// Gán dữ liệu vào textarea có class rich-editor</span>
+    document.getElementById(<span class="code-string">'edit_post_noi_dung'</span>).value = post.noi_dung || <span class="code-string">''</span>;
+
+    <span class="code-comment">// Mở Modal Bootstrap 5</span>
+    <span class="code-keyword">const</span> modal = <span class="code-keyword">new</span> bootstrap.Modal(document.getElementById(<span class="code-string">'editPostModal'</span>));
+    modal.show();
+}
+<span class="code-tag">&lt;/script&gt;</span></code></pre>
+          </div>
+        </section>
+
+        <!-- Section 9: FAQ -->
+        <section id="faq-troubleshooting" class="doc-section">
+          <div class="doc-section-header">
+            <h2 class="doc-section-title">9. Xử Lý Sự Cố Thường Gặp (FAQ)</h2>
+            <p class="doc-section-desc">
+              Giải đáp các câu hỏi thường gặp khi tích hợp vào dự án.
+            </p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 16px">
+            <details
+              style="
+                background: #f8fafc;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 12px 16px;
+              "
+            >
+              <summary
+                style="
+                  font-weight: 700;
+                  cursor: pointer;
+                  color: var(--text-main);
+                "
+              >
+                1. Hình ảnh upload được lưu trữ ở đâu?
+              </summary>
+              <p style="margin-top: 8px; font-size: 0.92rem; color: #475569">
+                Mặc định editor đọc file từ máy tính người dùng và chuyển thành
+                chuỗi ảnh <strong>Base64 (Data URI)</strong> trực tiếp gắn vào
+                thẻ <code>&lt;img src="data:image/png;base64,..."&gt;</code>.
+                Chuỗi này được lưu thẳng vào database (cột TEXT hoặc LONGTEXT)
+                mà không cần cài đặt thêm API upload server phức tạp!
+              </p>
+            </details>
+
+            <details
+              style="
+                background: #f8fafc;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 12px 16px;
+              "
+            >
+              <summary
+                style="
+                  font-weight: 700;
+                  cursor: pointer;
+                  color: var(--text-main);
+                "
+              >
+                2. Tôi có thể đổi màu chủ đạo (Theme Color) sang màu khác không?
+              </summary>
+              <p style="margin-top: 8px; font-size: 0.92rem; color: #475569">
+                Hoàn toàn được! Bạn chỉ cần ghi đè biến CSS
+                <code>--rte-primary</code> trong file CSS của mình: <br /><code
+                  style="
+                    background: #e2e8f0;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    display: inline-block;
+                    margin-top: 6px;
+                  "
+                  >:root { --rte-primary: #2563eb; /* Đổi sang màu xanh dương */
+                  }</code
+                >
+              </p>
+            </details>
+
+            <details
+              style="
+                background: #f8fafc;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 12px 16px;
+              "
+            >
+              <summary
+                style="
+                  font-weight: 700;
+                  cursor: pointer;
+                  color: var(--text-main);
+                "
+              >
+                3. Giao diện trên điện thoại có bị tràn viền không?
+              </summary>
+              <p style="margin-top: 8px; font-size: 0.92rem; color: #475569">
+                Không! Editor đã được tối ưu hóa toàn diện: thanh Menubar và
+                Toolbar tự động xuống dòng linh hoạt (<code
+                  >flex-wrap: wrap</code
+                >), kích thước nút co nhỏ theo chuẩn màn hình điện thoại dưới
+                768px và 480px.
+              </p>
+            </details>
+
+            <details
+              style="
+                background: #f8fafc;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                padding: 12px 16px;
+              "
+            >
+              <summary
+                style="
+                  font-weight: 700;
+                  cursor: pointer;
+                  color: var(--text-main);
+                "
+              >
+                4. Khi form submit thì dữ liệu có bị mất không?
+              </summary>
+              <p style="margin-top: 8px; font-size: 0.92rem; color: #475569">
+                Trước khi form gửi đi (sự kiện <code>submit</code>), editor luôn
+                tự động chạy hàm <code>syncToTextarea()</code> để đảm bảo 100%
+                nội dung mới nhất đã nằm trọn vẹn trong
+                <code>&lt;textarea&gt;</code>.
+              </p>
+            </details>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>
+        <strong>Rich Text Editor (Vanilla JS Edition)</strong> • Bộ công cụ soạn
+        thảo văn bản mã nguồn mở (Open Source)
+      </p>
+      <p style="margin-top: 4px">
+        Tự do sử dụng, chỉnh sửa và mở rộng trong mọi dự án HTML, PHP và Laravel
+        của bạn.
+      </p>
+    </footer>
+
+    <!-- Script Trình Soạn Thảo Của Bạn -->
+    <script src="rich-text-editor.js"></script>
+
+    <!-- Script Demo & Copy Code -->
+    <script>
+      // Hàm sao chép code vào clipboard
+      function copyCode(btn) {
+        const pre = btn.closest(".code-wrapper").querySelector("pre");
+        const text = pre.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = btn.textContent;
+          btn.textContent = "✓ Đã chép!";
+          btn.style.background = "#15803d";
+          btn.style.color = "#fff";
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = "";
+            btn.style.color = "";
+          }, 2000);
+        });
+      }
+
+      // Demo Actions
+      function demoGetHTML() {
+        const editor = RichTextEditor.getInstance("#myDemoEditor");
+        const output = document.getElementById("demoOutput");
+        if (editor) {
+          const html = editor.getContent();
+          output.style.display = "block";
+          output.textContent = "--- MÃ HTML HIỆN TẠI ---\n" + html;
+        }
+      }
+
+      function demoSetSample() {
+        const editor = RichTextEditor.getInstance("#myDemoEditor");
+        if (editor) {
+          editor.setContent(`
+                    <h3>🚀 Trải Nghiệm Soạn Thảo Văn Bản Chuyên Nghiệp</h3>
+                    <p><strong>Rich Text Editor</strong> cung cấp bộ công cụ định dạng trực quan (<em>WYSIWYG</em>), quản lý bảng biểu, chèn đa phương tiện và xuất tài liệu Word/HTML nhanh chóng.</p>
+                    <div class="rte-callout rte-callout-warning">
+                        <strong>💡 Mẹo sử dụng Text Editor hiệu quả:</strong>
+                        <p>Bạn có thể kéo thả hình ảnh trực tiếp vào vùng soạn thảo, sử dụng tổ hợp phím tắt <code>Ctrl+B</code>, <code>Ctrl+I</code>, <code>Ctrl+U</code> hoặc bật tính năng <strong>soạn thảo bằng giọng nói</strong> trên thanh công cụ.</p>
+                    </div>
+                `);
+          const output = document.getElementById("demoOutput");
+          output.style.display = "block";
+          output.textContent = "✓ Đã gọi editor.setContent() thành công!";
+        }
+      }
+
+      function demoDirectValue() {
+        // Thử nghiệm tính năng Two-way Sync can thiệp trực tiếp vào textarea.value
+        const textarea = document.getElementById("myDemoEditor");
+        textarea.value = `
+                <h2>⚡ Thử nghiệm Two-way Sync</h2>
+                <p>Nội dung này được cập nhật bằng lệnh <code>document.getElementById('myDemoEditor').value = '...'</code>!</p>
+                <div class="rte-callout rte-callout-info">
+                    <strong>Thông báo hệ thống:</strong>
+                    <p>Trình soạn thảo tự động bắt được thay đổi này và cập nhật lên màn hình ngay lập tức.</p>
+                </div>
+            `;
+        const output = document.getElementById("demoOutput");
+        output.style.display = "block";
+        output.textContent =
+          '✓ Đã gán trực tiếp: textarea.value = "...". Editor đã tự động hiển thị nội dung mới!';
+      }
+
+      function demoClear() {
+        const editor = RichTextEditor.getInstance("#myDemoEditor");
+        if (editor && confirm("Xóa sạch nội dung trong khung soạn thảo?")) {
+          editor.setContent("<p><br></p>");
+          const output = document.getElementById("demoOutput");
+          output.style.display = "none";
+        }
+      }
+    </script>
+  </body>
+</html>

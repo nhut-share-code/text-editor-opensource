@@ -1,0 +1,1016 @@
+/* ==========================================================================
+   RICH TEXT EDITOR CSS - Vĩnh Long Odyssey & Modern Enterprise RTE
+   Thiết kế chuẩn UI/UX theo phong cách TinyMCE, Google Docs, Word
+   ========================================================================== */
+
+:root {
+    --rte-primary: #15803d; /* Màu xanh lá thương hiệu Vĩnh Long Odyssey */
+    --rte-primary-light: #f0fdf4;
+    --rte-primary-hover: #166534;
+    --rte-border: #e2e8f0;
+    --rte-border-focus: #15803d;
+    --rte-bg-top: #f8fafc;
+    --rte-bg-menu: #ffffff;
+    --rte-bg-hover: #f1f5f9;
+    --rte-bg-active: #e2e8f0;
+    --rte-text: #1e293b;
+    --rte-text-muted: #64748b;
+    --rte-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --rte-radius: 8px;
+    --rte-font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Đảm bảo toàn bộ các phần tử bên trong Editor luôn tuân thủ box-sizing: border-box */
+.rte-container,
+.rte-container *,
+.rte-container *::before,
+.rte-container *::after {
+    box-sizing: border-box;
+}
+
+/* Wrapper bao bọc toàn bộ Editor - Tự co giãn và ngăn vỡ khung trên thiết bị di động */
+.rte-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1px solid var(--rte-border);
+    border-radius: var(--rte-radius);
+    background-color: #ffffff;
+    box-shadow: var(--rte-shadow);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    font-family: var(--rte-font);
+    color: var(--rte-text);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 1rem;
+    overflow-x: clip; /* Ngăn con kéo giãn chiều rộng layout cha */
+}
+
+.rte-container:focus-within {
+    border-color: var(--rte-border-focus);
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.12);
+}
+
+/* Chế độ Toàn màn hình (Fullscreen) */
+.rte-container.rte-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 99999 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+
+.rte-container.rte-fullscreen .rte-editor-area,
+.rte-container.rte-fullscreen .rte-source-area {
+    height: calc(100vh - 120px) !important;
+    max-height: none !important;
+}
+
+/* ==========================================================================
+   1. TOP MENUBAR (File, Edit, View, Insert, Format, Table)
+   ========================================================================== */
+.rte-menubar {
+    display: flex;
+    flex-wrap: wrap; /* Cho phép các mục menu rớt dòng linh hoạt khi màn hình nhỏ */
+    align-items: center;
+    background-color: var(--rte-bg-top);
+    border-bottom: 1px solid var(--rte-border);
+    padding: 3px 8px;
+    font-size: 13px;
+    user-select: none;
+    position: relative;
+    gap: 2px;
+    max-width: 100%;
+}
+
+.rte-menu-item {
+    position: relative;
+}
+
+.rte-menu-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--rte-text);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.rte-menu-btn:hover,
+.rte-menu-item.is-open .rte-menu-btn {
+    background-color: var(--rte-bg-hover);
+    color: var(--rte-primary);
+}
+
+/* Menu Dropdown */
+.rte-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #ffffff;
+    min-width: 210px;
+    max-width: calc(100vw - 24px);
+    border: 1px solid var(--rte-border);
+    border-radius: 6px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    padding: 4px 0;
+    z-index: 1070;
+    display: none;
+}
+
+.rte-menu-item.is-open .rte-dropdown {
+    display: block;
+    animation: rteFadeDown 0.15s ease-out;
+}
+
+@keyframes rteFadeDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.rte-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 14px;
+    font-size: 13px;
+    color: var(--rte-text);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: background 0.12s, color 0.12s;
+}
+
+.rte-dropdown-item:hover {
+    background-color: var(--rte-primary-light);
+    color: var(--rte-primary);
+}
+
+.rte-dropdown-item .shortcut {
+    font-size: 11px;
+    color: var(--rte-text-muted);
+    margin-left: 16px;
+}
+
+.rte-dropdown-divider {
+    height: 1px;
+    background-color: var(--rte-border);
+    margin: 4px 0;
+}
+
+/* ==========================================================================
+   2. THANH CÔNG CỤ TOOLBAR
+   ========================================================================== */
+.rte-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--rte-border);
+    user-select: none;
+}
+
+.rte-tool-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.rte-divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--rte-border);
+    margin: 0 4px;
+}
+
+/* Dropdown Select (Heading & Font Size) */
+.rte-select {
+    background: transparent;
+    border: 1px solid var(--rte-border);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 13px;
+    color: var(--rte-text);
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+    height: 32px;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.rte-select:hover,
+.rte-select:focus {
+    border-color: var(--rte-primary);
+    background-color: var(--rte-bg-hover);
+}
+
+.rte-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--rte-text);
+    transition: all 0.15s;
+    position: relative;
+    padding: 0;
+}
+
+.rte-btn:hover {
+    background-color: var(--rte-bg-hover);
+    color: var(--rte-primary);
+}
+
+.rte-btn:active,
+.rte-btn.is-active {
+    background-color: var(--rte-bg-active);
+    color: var(--rte-primary);
+}
+
+.rte-btn svg,
+.rte-color-wrapper svg {
+    width: 17px;
+    height: 17px;
+    stroke-width: 2;
+    stroke: currentColor;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+
+/* Nút Preview đặc biệt trên toolbar */
+.rte-btn-preview {
+    width: auto !important;
+    padding: 0 10px !important;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: var(--rte-primary-light);
+    color: var(--rte-primary);
+    border: 1px solid #bbf7d0;
+    margin-left: auto;
+}
+
+.rte-btn-preview:hover {
+    background-color: #dcfce7 !important;
+    color: var(--rte-primary-hover) !important;
+}
+
+/* ==========================================================================
+   3. COLOR PICKERS - TEXT COLOR vs BACKGROUND COLOR
+   ========================================================================== */
+.rte-color-wrapper {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--rte-text);
+    transition: background 0.15s, color 0.15s;
+}
+
+.rte-color-wrapper:hover {
+    background-color: var(--rte-bg-hover);
+    color: var(--rte-primary);
+}
+
+.rte-color-wrapper input[type="color"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    left: 0;
+    top: 0;
+}
+
+.rte-color-bar {
+    width: 18px;
+    height: 3px;
+    border-radius: 2px;
+    margin-top: 1px;
+    background-color: #000;
+    transition: background-color 0.2s;
+}
+
+/* Popover chứa Emoji & Ký hiệu */
+.rte-popover {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #ffffff;
+    border: 1px solid var(--rte-border);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+    z-index: 1070;
+    display: none;
+    min-width: 240px;
+    max-width: calc(100vw - 24px);
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+
+.rte-popover.is-open {
+    display: grid;
+    animation: rteFadeDown 0.15s ease-out;
+}
+
+.rte-popover-btn {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rte-popover-btn:hover {
+    background-color: var(--rte-bg-hover);
+    transform: scale(1.2);
+}
+
+/* ==========================================================================
+   4. VÙNG SOẠN THẢO VĂN BẢN (EDITOR AREA)
+   ========================================================================== */
+.rte-editor-area {
+    min-height: 240px;
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px 24px;
+    font-size: 15px;
+    line-height: 1.7;
+    outline: none;
+    color: var(--rte-text);
+    background-color: #ffffff;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.rte-editor-area:empty:before {
+    content: attr(data-placeholder);
+    color: var(--rte-text-muted);
+    pointer-events: none;
+    display: block;
+}
+
+/* Khung xem mã nguồn HTML thô */
+.rte-source-area {
+    display: none;
+    width: 100%;
+    min-height: 240px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #0f172a;
+    background: #f8fafc;
+    border: none;
+    outline: none;
+    resize: vertical;
+}
+
+.rte-container.show-source .rte-editor-area {
+    display: none;
+}
+.rte-container.show-source .rte-source-area {
+    display: block;
+}
+
+/* Typography bên trong Editor */
+.rte-editor-area p { margin-bottom: 12px; }
+.rte-editor-area h1 { font-size: 24px; margin-top: 18px; margin-bottom: 10px; font-weight: 700; color: #0f172a; }
+.rte-editor-area h2 { font-size: 20px; margin-top: 16px; margin-bottom: 8px; font-weight: 700; color: #0f172a; }
+.rte-editor-area h3 { font-size: 17px; margin-top: 14px; margin-bottom: 6px; font-weight: 600; color: #0f172a; }
+.rte-editor-area ul, 
+.rte-editor-area ol { 
+    margin-bottom: 12px; 
+    padding-left: 28px; 
+}
+.rte-editor-area a { 
+    color: var(--rte-primary); 
+    text-decoration: underline; 
+}
+.rte-editor-area blockquote {
+    border-left: 4px solid var(--rte-primary);
+    padding: 8px 16px;
+    margin: 14px 0;
+    color: #475569;
+    background-color: #f8fafc;
+    border-radius: 0 4px 4px 0;
+    font-style: italic;
+}
+.rte-editor-area pre {
+    background-color: #0f172a;
+    color: #f1f5f9;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    margin: 12px 0;
+}
+
+/* Khối Hộp Thông Báo (Callouts / Alert Boxes) */
+.rte-callout {
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 6px;
+    border-left: 4px solid #94a3b8;
+    background-color: #f8fafc;
+    font-size: 14.5px;
+    line-height: 1.6;
+}
+.rte-callout-success {
+    border-left-color: #16a34a !important;
+    background-color: #f0fdf4 !important;
+    color: #14532d !important;
+}
+.rte-callout-warning {
+    border-left-color: #f59e0b !important;
+    background-color: #fffbeb !important;
+    color: #78350f !important;
+}
+.rte-callout-info {
+    border-left-color: #0284c7 !important;
+    background-color: #f0f9ff !important;
+    color: #0c4a6e !important;
+}
+.rte-callout-danger {
+    border-left-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    color: #7f1d1d !important;
+}
+
+/* Nhúng Video Responsive */
+.rte-video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 ratio */
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 16px 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+.rte-video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* Clearfix cho vùng soạn thảo khi có ảnh trôi trái / trôi phải */
+.rte-editor-area:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Ảnh chèn vào */
+.rte-editor-area img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin: 10px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: outline 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+}
+
+.rte-editor-area img:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.rte-editor-area img.rte-img-selected {
+    outline: 3px solid var(--rte-primary) !important;
+    outline-offset: 3px;
+}
+
+/* Thanh công cụ nổi cho hình ảnh khi được chọn (Image Floating Controls) */
+.rte-image-toolbar {
+    position: absolute;
+    background: #0f172a;
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 4px 6px;
+    display: none;
+    align-items: center;
+    gap: 3px;
+    z-index: 1080;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+    user-select: none;
+    font-family: var(--rte-font);
+    max-width: calc(100vw - 20px);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.rte-image-toolbar.is-visible {
+    display: flex;
+    animation: rteFadeDown 0.15s ease-out;
+}
+
+.rte-img-btn {
+    background: transparent;
+    border: none;
+    color: #f1f5f9;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 4px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.rte-img-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.rte-img-btn.is-active {
+    background: var(--rte-primary);
+    color: #ffffff;
+}
+
+.rte-img-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+.rte-img-btn-del:hover {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+.rte-img-divider {
+    width: 1px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 0 4px;
+}
+
+/* Bảng */
+.rte-editor-area table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 100%;
+    margin: 14px 0;
+}
+.rte-editor-area table,
+.rte-editor-area th,
+.rte-editor-area td {
+    border: 1px solid var(--rte-border);
+}
+.rte-editor-area th {
+    background-color: var(--rte-bg-top);
+    font-weight: 600;
+}
+.rte-editor-area th,
+.rte-editor-area td {
+    padding: 8px 12px;
+    min-width: 60px;
+}
+
+/* Cho phép cuộn bảng dữ liệu ngang khi màn hình hẹp */
+@media (max-width: 768px) {
+    .rte-editor-area table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* ==========================================================================
+   5. THANH TRẠNG THÁI FOOTER
+   ========================================================================== */
+.rte-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 14px;
+    background-color: var(--rte-bg-top);
+    border-top: 1px solid var(--rte-border);
+    font-size: 12px;
+    color: var(--rte-text-muted);
+}
+
+/* ==========================================================================
+   6. MODAL XEM TRƯỚC (PREVIEW POPUP)
+   ========================================================================== */
+.rte-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.rte-modal-overlay.is-visible {
+    display: flex;
+    animation: rteFadeIn 0.2s ease-out;
+}
+
+@keyframes rteFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.rte-modal-content {
+    background: #ffffff;
+    width: 100%;
+    max-width: 860px;
+    max-height: 85vh;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.rte-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--rte-bg-top);
+    border-bottom: 1px solid var(--rte-border);
+}
+
+.rte-modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--rte-text);
+}
+
+.rte-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--rte-text-muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.rte-modal-close:hover {
+    background: var(--rte-bg-hover);
+    color: #ef4444;
+}
+
+.rte-modal-body {
+    padding: 28px;
+    overflow-y: auto;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.rte-modal-footer {
+    padding: 10px 20px;
+    background: var(--rte-bg-top);
+    border-top: 1px solid var(--rte-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.rte-btn-secondary {
+    background: #ffffff;
+    border: 1px solid var(--rte-border);
+    color: var(--rte-text);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.rte-btn-secondary:hover {
+    background: var(--rte-bg-hover);
+}
+
+/* ==========================================================================
+   7. CÁC TIỆN ÍCH MỞ RỘNG (EXTENDED UTILITIES)
+   ========================================================================== */
+
+/* Nút Ghi Âm / Soạn thảo giọng nói (Voice Typing) */
+.rte-btn-mic.is-recording {
+    background-color: #fee2e2 !important;
+    color: #ef4444 !important;
+    border-color: #fca5a5 !important;
+    animation: rtePulseMic 1.2s infinite;
+}
+
+@keyframes rtePulseMic {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    50% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Huy Hiệu & Nhãn Giá (Tour Badges) */
+.rte-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin: 2px 4px;
+    vertical-align: middle;
+}
+
+.rte-badge-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.rte-badge-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.rte-badge-orange { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+.rte-badge-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+/* Chú thích ảnh (Figure & Figcaption) */
+.rte-editor-area figure {
+    margin: 14px 0;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.rte-editor-area figcaption {
+    font-size: 12.5px;
+    color: #64748b;
+    font-style: italic;
+    text-align: center;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+/* Chế độ Giao diện Ban đêm (Dark Mode) cho Editor */
+.rte-container.rte-dark-theme {
+    --rte-bg-top: #0f172a;
+    --rte-border: #334155;
+    --rte-text: #f8fafc;
+    --rte-text-muted: #94a3b8;
+    --rte-bg-hover: #1e293b;
+    --rte-bg-active: #334155;
+    background-color: #020617;
+}
+
+.rte-container.rte-dark-theme .rte-editor-area {
+    background-color: #090d16;
+    color: #e2e8f0;
+}
+
+.rte-container.rte-dark-theme .rte-toolbar,
+.rte-container.rte-dark-theme .rte-menubar,
+.rte-container.rte-dark-theme .rte-footer {
+    background-color: #0f172a;
+    border-color: #1e293b;
+}
+
+.rte-container.rte-dark-theme .rte-dropdown,
+.rte-container.rte-dark-theme .rte-popover {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+.rte-container.rte-dark-theme .rte-dropdown-item {
+    color: #f8fafc;
+}
+
+.rte-container.rte-dark-theme .rte-dropdown-item:hover {
+    background-color: #1e293b;
+    color: #38bdf8;
+}
+
+/* ==========================================================================
+   8. TỐI ƯU GIAO DIỆN ĐÁP ỨNG DI ĐỘNG & TABLET (RESPONSIVE OPTIMIZATION)
+   Ngăn chặn hoàn toàn hiện tượng tràn khung hoặc xuất hiện thanh cuộn ngang trang
+   ========================================================================== */
+@media (max-width: 768px) {
+    .rte-container {
+        border-radius: 6px;
+        margin-bottom: 0.75rem;
+    }
+
+    .rte-menubar {
+        padding: 4px 6px;
+        gap: 2px;
+    }
+
+    .rte-menu-btn {
+        padding: 4px 7px;
+        font-size: 12px;
+    }
+
+    .rte-toolbar {
+        padding: 4px 6px;
+        gap: 3px;
+    }
+
+    .rte-tool-group {
+        gap: 2px;
+    }
+
+    .rte-select {
+        height: 30px;
+        font-size: 12px;
+        padding: 2px 5px;
+        max-width: 135px;
+    }
+
+    .rte-btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    .rte-btn svg,
+    .rte-color-wrapper svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .rte-color-wrapper {
+        width: 30px;
+        height: 30px;
+    }
+
+    .rte-color-bar {
+        width: 15px;
+        height: 2.5px;
+    }
+
+    .rte-divider {
+        height: 16px;
+        margin: 0 2px;
+    }
+
+    .rte-btn-preview {
+        padding: 0 8px !important;
+        font-size: 11.5px;
+        height: 30px;
+    }
+
+    .rte-editor-area {
+        padding: 12px 14px;
+        font-size: 14px;
+        min-height: 180px;
+    }
+
+    .rte-footer {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .rte-modal-overlay {
+        padding: 8px;
+    }
+
+    .rte-modal-content {
+        max-height: 94vh;
+        border-radius: 8px;
+    }
+
+    .rte-modal-header {
+        padding: 10px 14px;
+    }
+
+    .rte-modal-body {
+        padding: 14px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rte-menubar {
+        padding: 3px 4px;
+        gap: 1px;
+    }
+
+    .rte-menu-btn {
+        padding: 4px 5px;
+        font-size: 11px;
+    }
+
+    .rte-toolbar {
+        padding: 3px 4px;
+        gap: 2px;
+    }
+
+    .rte-select {
+        max-width: 110px;
+        font-size: 11px;
+        padding: 2px 3px;
+        height: 28px;
+    }
+
+    .rte-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .rte-btn svg,
+    .rte-color-wrapper svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .rte-color-wrapper {
+        width: 28px;
+        height: 28px;
+    }
+
+    .rte-color-bar {
+        width: 14px;
+        height: 2px;
+    }
+
+    .rte-btn-preview {
+        padding: 0 6px !important;
+        font-size: 10.5px;
+        height: 28px;
+    }
+
+    .rte-popover {
+        grid-template-columns: repeat(5, 1fr);
+        min-width: 190px;
+        padding: 6px;
+        gap: 4px;
+    }
+
+    .rte-popover-btn {
+        font-size: 16px;
+        padding: 3px;
+    }
+
+    .rte-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .rte-status-right {
+        align-self: flex-end;
+        font-size: 9.5px;
+    }
+
+    .rte-image-toolbar {
+        max-width: calc(100vw - 16px);
+        padding: 3px;
+        gap: 2px;
+    }
+
+    .rte-img-btn {
+        padding: 3px 5px;
+        font-size: 10px;
+    }
+}
